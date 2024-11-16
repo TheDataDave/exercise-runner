@@ -1,5 +1,8 @@
 # Runner.js
 
+## Installation
+Simply download into a place accessible by node. i.e. the directory with the exercises.js file or a parent directory.
+
 ## Description
 
 ### Non-Technical Explanation
