@@ -1,4 +1,3 @@
-```markdown
 # Runner.js
 
 ## Installation
