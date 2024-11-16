@@ -46,8 +46,8 @@ const absoluteFilePath = path.resolve(process.cwd(), filePath);
 // Read the content of the exercises.js file
 const fileContent = fs.readFileSync(absoluteFilePath, 'utf-8');
 
-// Add export statements to the functions
-const modifiedContent = fileContent.replace(/function\s+(\w+)/g, 'export function $1');
+// Add export statements to the top-level functions only
+const modifiedContent = fileContent.replace(/^(function\s+\w+)/gm, 'export $1');
 
 // Create a temporary file with the modified content
 const tempFilePath = path.resolve(process.cwd(), 'temp_exercises.js');
