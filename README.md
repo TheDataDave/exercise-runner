@@ -15,6 +15,10 @@ To use `runner.js`, download it to a directory accessible by Node.js. Ensure it'
 - Execute all functions in the file.
 - Execute a specific function when specified via a command-line argument.
 
+### Currently does not support (see TODO at bottom):
+- Imports
+- External files
+
 The script also logs which functions executed successfully and handles errors for failed functions.
 
 ---
