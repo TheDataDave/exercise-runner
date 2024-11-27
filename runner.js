@@ -85,7 +85,6 @@ function refactorFile(filePath) {
     fs.writeFileSync(tempFilePath, content, 'utf-8');
 
     let fsc = readFileContent(tempFilePath);
-    console.log(fsc);
 }
 
 // Dynamically import the temporary file
