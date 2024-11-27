@@ -98,11 +98,27 @@ const passedFunctions = [];
 const failedFunctions = [];
 
 // Helper function to execute a function and handle errors
-const executeFunction = (func, funcName) => {
+const executeFunction = async (func, funcName) => {
+    console.log('-'.repeat(25));
+    console.log(`Running ${funcName}:\n`);
+
+    // Convert non-async functions into promises
+    if (func.constructor.name !== 'AsyncFunction') {
+        const originalFunc = func;
+        func = () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    originalFunc();
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        };
+    }
     try {
-        console.log('-'.repeat(25));
-        console.log(`Running ${funcName}:\n`);
-        func();
+        await func();
+
         console.log(`${funcName} passed\n`);
         passedFunctions.push(funcName);
     } catch (error) {
@@ -128,18 +144,19 @@ function isClass(fn) {
 
     if (command === '--run' && func) {
         if (exercises[func] && !isClass(exercises[func])) {
-            executeFunction(exercises[func], func);
+            await executeFunction(exercises[func], func);
         } else {
             console.log(`Function ${func} not found or is a class`);
         }
     } else if (!command) {
         for (const [funcName, func] of nonClassExports) {
-            executeFunction(func, funcName);
+            await executeFunction(func, funcName);
         }
     } else {
         console.log(`Invalid command supplied: ${command}`);
     }
 
+    console.log("Summary:")
     console.log('Passed functions:', passedFunctions);
     console.log('Failed functions:', failedFunctions);
     // Cleanup tempfile
