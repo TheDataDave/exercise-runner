@@ -14,10 +14,7 @@ To use `runner.js`, download it to a directory accessible by Node.js. Ensure it'
 `runner.js` is a Node.js script that dynamically imports functions from a specified JavaScript file by creating a temporary modified version of the file with export statements. It can:
 - Execute all functions in the file.
 - Execute a specific function when specified via a command-line argument.
-
-### Currently does not support (see TODO at bottom):
-- Imports
-- External files
+- Converts all functions to async functions and runs them concurrently, may get weird results if function called pauses execution outside of async e.g. promises.all() in a synchronous function
 
 The script also logs which functions executed successfully and handles errors for failed functions.
 
