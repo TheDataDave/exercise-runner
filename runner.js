@@ -41,17 +41,54 @@ if (!filePath) {
 }
 
 // Resolve the file path relative to the current working directory
-const absoluteFilePath = path.resolve(process.cwd(), filePath);
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-// Read the content of the exercises.js file
-const fileContent = fs.readFileSync(absoluteFilePath, 'utf-8');
+const absoluteFilePath = path.resolve(__dirname, filePath);
+const tempFileDirectoryPath = path.resolve(path.dirname(absoluteFilePath));
+const tempFilePath = path.join(tempFileDirectoryPath, 'temp.js');
 
-// Add export statements to the top-level functions only
-const modifiedContent = fileContent.replace(/^(function\s+\w+)/gm, 'export $1');
+// Function to read file content
+function readFileContent(filePath) {
+    return fs.readFileSync(filePath, 'utf-8');
+}
 
-// Create a temporary file with the modified content
-const tempFilePath = path.resolve(process.cwd(), 'temp_exercises.js');
-fs.writeFileSync(tempFilePath, modifiedContent);
+// Function to ensure top-level functions are exported
+function exportTopLevelFunctions(content) {
+    return content.replace(/^(async\s+)?function\s+\w+/gm, (match, p1, offset, string) => {
+        const isTopLevel = string.lastIndexOf('\n', offset) === offset - 1;
+        return isTopLevel ? `export ${match}` : match;
+    });
+}
+
+// Function to ensure top-level classes are exported
+function exportTopLevelClasses(content) {
+    return content.replace(/^class\s+\w+/gm, (match, offset, string) => {
+        const isTopLevel = string.lastIndexOf('\n', offset) === offset - 1;
+        return isTopLevel ? `export ${match}` : match;
+    });
+}
+
+function replaceReadFilePaths(content) {
+    const regex = /\.readFile\(['"]([^'"]+\/)?([^'"]+)['"]/g;
+    return content.replace(regex, (match, dirPath = '', fileName) => {
+        const relativePath = path.join(tempFileDirectoryPath, fileName).replace(/\\/g, '/');
+        return `.readFile('${relativePath}'`;
+    });
+}
+
+// Main function to refactor the file
+function refactorFile(filePath) {
+    let content = readFileContent(filePath);
+
+    content = exportTopLevelFunctions(content);
+    content = exportTopLevelClasses(content);
+    content = replaceReadFilePaths(content);
+
+    fs.writeFileSync(tempFilePath, content, 'utf-8');
+
+    let fsc = readFileContent(tempFilePath);
+    console.log(fsc);
+}
 
 // Dynamically import the temporary file
 const importTempFile = async () => {
@@ -69,51 +106,45 @@ const executeFunction = (func, funcName) => {
         console.log('-'.repeat(25));
         console.log(`Running ${funcName}:\n`);
         func();
-        console.log(`\n${funcName} executed successfully.`);
-        console.log('-'.repeat(25));
+        console.log(`${funcName} passed\n`);
         passedFunctions.push(funcName);
     } catch (error) {
-        console.error(`Error executing ${funcName}:`);
-        console.error(`Error message: ${error.message}`);
-        console.error(`Stack trace: ${error.stack}`);
+        console.log(`${funcName} failed\n`);
+        console.error(error);
         failedFunctions.push(funcName);
     }
 };
 
-// Execute the function from the imported module
-const runFunction = async () => {
-    try {
-        const exercises = await importTempFile();
-        // console.log('Imported exercises:', exercises); // Debugging line
+// Utility to determine if a function is a class
+function isClass(fn) {
+    return typeof fn === 'function' && /^\s*class\s+/.test(fn.toString());
+}
 
-        if (command === '--run') {
-            if (typeof exercises[func] === 'function') {
-                executeFunction(exercises[func], func);
-            } else {
-                console.log(`Unknown function: ${func}. Please use one of the functions defined in the file.`);
-            }
+// Main execution logic
+(async () => {
+    // Refactor the file before running
+    refactorFile(absoluteFilePath);
+    const exercises = await importTempFile();
+
+    // Filter out exported classes
+    const nonClassExports = Object.entries(exercises).filter(([_, value]) => !isClass(value));
+
+    if (command === '--run' && func) {
+        if (exercises[func] && !isClass(exercises[func])) {
+            executeFunction(exercises[func], func);
         } else {
-            console.log('Running all exercises...');
-            for (const funcName in exercises) {
-                if (typeof exercises[funcName] === 'function') {
-                    executeFunction(exercises[funcName], funcName);
-                }
-            }
+            console.log(`Function ${func} not found or is a class`);
         }
-
-        // Print passes and fails
-        console.log('='.repeat(25));
-        console.log(`Passes: ${passedFunctions.length}, Fails: ${failedFunctions.length}`);
-        console.log('='.repeat(25));
-
-    } catch (error) {
-        console.error('An error occurred while importing the module:');
-        console.error(`Error message: ${error.message}`);
-        console.error(`Stack trace: ${error.stack}`);
-    } finally {
-        // Clean up the temporary file
-        fs.unlinkSync(tempFilePath);
+    } else if (!command) {
+        for (const [funcName, func] of nonClassExports) {
+            executeFunction(func, funcName);
+        }
+    } else {
+        console.log(`Invalid command supplied: ${command}`);
     }
-};
 
-runFunction();
+    console.log('Passed functions:', passedFunctions);
+    console.log('Failed functions:', failedFunctions);
+    // Cleanup tempfile
+    fs.unlinkSync(tempFilePath);
+})();

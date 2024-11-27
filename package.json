@@ -1,0 +1,11 @@
+{
+  "name": "exercise-runner",
+  "version": "1.0.0",
+  "description": "To use `runner.js`, download it to a directory accessible by Node.js. Ensure it's in the same directory or a parent directory of the JavaScript file containing the functions you want to run (e.g., `exercises.js`).",
+  "main": "runner.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
