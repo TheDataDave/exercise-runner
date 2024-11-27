@@ -41,9 +41,7 @@ if (!filePath) {
 }
 
 // Resolve the file path relative to the current working directory
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
-
-const absoluteFilePath = path.resolve(__dirname, filePath);
+const absoluteFilePath = path.resolve(process.cwd(), filePath);
 const tempFileDirectoryPath = path.resolve(path.dirname(absoluteFilePath));
 const tempFilePath = path.join(tempFileDirectoryPath, 'temp.js');
 
