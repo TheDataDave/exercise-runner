@@ -128,11 +128,6 @@ For additional help, refer to the usage examples above.
 ## TODO
 ### Planned Enhancements
 1. **Support for External Files:**
-   - Implement functionality to dynamically import and handle functions that depend on external files (e.g., JSON, text, or configuration files).
-   - Ensure proper error handling when external files are missing or malformed.
-
-2. **Module Imports:**
-   - Add support for JavaScript files that use `import` statements for external libraries or other modules.
-   - Resolve dependencies dynamically to ensure the target file executes correctly.
+   - Implement functionality to handle string templates file handling e.g. fs.readFile(`${path}/file.txt`)
 
 These enhancements aim to make `runner.js` more robust and versatile, supporting a wider range of use cases.
